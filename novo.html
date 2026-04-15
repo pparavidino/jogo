@@ -21,9 +21,11 @@ body {
 canvas {
   border-radius: 25px;
   box-shadow: 0 0 40px #ff1493;
+  max-width: 95vw;
+  max-height: 85vh;
 }
 
-#startScreen, #gameOverScreen, #loadingScreen {
+#startScreen, #gameOverScreen, #loadingScreen, #rotateScreen {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -51,7 +53,11 @@ button {
 
 <body>
 
-<canvas id="game" width="1000" height="520"></canvas>
+<canvas id="game"></canvas>
+
+<div id="rotateScreen" style="display:none;">
+  <h1>📱 Vire o celular</h1>
+</div>
 
 <div id="loadingScreen">
   <h1>Carregando ❤️...</h1>
@@ -69,8 +75,30 @@ button {
 </div>
 
 <script>
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
+
+/* RESPONSIVO */
+function resizeCanvas() {
+  canvas.width = window.innerWidth * 0.95;
+  canvas.height = window.innerHeight * 0.8;
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+/* ORIENTAÇÃO */
+function checkOrientation() {
+  if (window.innerHeight > window.innerWidth) {
+    document.getElementById("rotateScreen").style.display = "flex";
+  } else {
+    document.getElementById("rotateScreen").style.display = "none";
+  }
+}
+
+window.addEventListener("resize", checkOrientation);
+checkOrientation();
 
 /* CONFIG */
 const RUN_TOTAL = 5;
@@ -192,7 +220,7 @@ function update() {
       h.y > playerY - playerHitbox.height &&
       h.y < playerY
     ) {
-      // 💋 AGORA É ACUMULATIVO
+
       kisses++;
       localStorage.setItem("kisses", kisses);
 
@@ -253,6 +281,7 @@ window.addEventListener("keydown", e => {
 });
 
 canvas.addEventListener("click", jump);
+window.addEventListener("touchstart", jump);
 
 /* START */
 function startGame() {
@@ -281,6 +310,7 @@ function loop() {
 }
 
 loop();
+
 </script>
 
 </body>
