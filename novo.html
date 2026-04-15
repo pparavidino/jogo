@@ -21,11 +21,9 @@ body {
 canvas {
   border-radius: 25px;
   box-shadow: 0 0 40px #ff1493;
-  max-width: 95vw;
-  max-height: 85vh;
 }
 
-#startScreen, #gameOverScreen, #loadingScreen, #rotateScreen {
+#startScreen, #gameOverScreen, #loadingScreen {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -55,10 +53,6 @@ button {
 
 <canvas id="game"></canvas>
 
-<div id="rotateScreen" style="display:none;">
-  <h1>📱 Vire o celular</h1>
-</div>
-
 <div id="loadingScreen">
   <h1>Carregando ❤️...</h1>
 </div>
@@ -79,26 +73,29 @@ button {
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-/* RESPONSIVO */
+/* TAMANHO BASE DO JOGO */
+const baseWidth = 1000;
+const baseHeight = 520;
+
+let scale = 1;
+
+/* RESPONSIVO PROFISSIONAL */
 function resizeCanvas() {
-  canvas.width = window.innerWidth * 0.95;
-  canvas.height = window.innerHeight * 0.8;
+
+  const scaleX = window.innerWidth / baseWidth;
+  const scaleY = window.innerHeight / baseHeight;
+
+  scale = Math.min(scaleX, scaleY);
+
+  canvas.width = baseWidth * scale;
+  canvas.height = baseHeight * scale;
+
+  canvas.style.width = canvas.width + "px";
+  canvas.style.height = canvas.height + "px";
 }
 
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
-
-/* ORIENTAÇÃO */
-function checkOrientation() {
-  if (window.innerHeight > window.innerWidth) {
-    document.getElementById("rotateScreen").style.display = "flex";
-  } else {
-    document.getElementById("rotateScreen").style.display = "none";
-  }
-}
-
-window.addEventListener("resize", checkOrientation);
-checkOrientation();
 
 /* CONFIG */
 const RUN_TOTAL = 5;
@@ -163,6 +160,7 @@ let spawnInterval = 90;
 
 /* PLAYER */
 function drawPlayer() {
+
   frameTimer++;
 
   let currentFrame;
@@ -177,17 +175,24 @@ function drawPlayer() {
     currentFrame = runFrames[frameIndex];
   }
 
-  ctx.drawImage(currentFrame, 70, playerY - 110, 100, 140);
+  ctx.drawImage(
+    currentFrame,
+    70 * scale,
+    (playerY - 110) * scale,
+    100 * scale,
+    140 * scale
+  );
 }
 
 /* CORAÇÃO */
 function drawHeart(x, y) {
-  ctx.font = "38px Arial";
-  ctx.fillText("❤️", x, y);
+  ctx.font = (38 * scale) + "px Arial";
+  ctx.fillText("❤️", x * scale, y * scale);
 }
 
 /* UPDATE */
 function update() {
+
   if (!gameRunning) return;
 
   score++;
@@ -204,7 +209,7 @@ function update() {
 
   if (spawnTimer > spawnInterval) {
     hearts.push({
-      x: canvas.width,
+      x: baseWidth,
       y: Math.random() * 200 + 100
     });
     spawnTimer = 0;
@@ -245,24 +250,27 @@ function update() {
 
 /* DRAW */
 function draw() {
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawPlayer();
   hearts.forEach(h => drawHeart(h.x, h.y));
 
   ctx.fillStyle = "#fff";
-  ctx.font = "18px Arial";
-  ctx.fillText("Distância: " + Math.floor(score / 5), 20, 30);
-  ctx.fillText("Recorde: " + Math.floor(bestScore / 5), 20, 55);
-  ctx.fillText("Beijos devidos: " + kisses + " 💋", 20, 80);
+  ctx.font = (18 * scale) + "px Arial";
+
+  ctx.fillText("Distância: " + Math.floor(score / 5), 20 * scale, 30 * scale);
+  ctx.fillText("Recorde: " + Math.floor(bestScore / 5), 20 * scale, 55 * scale);
+  ctx.fillText("Beijos: " + kisses + " 💋", 20 * scale, 80 * scale);
 }
 
 /* GAME OVER */
 function showGameOver() {
+
   document.getElementById("finalText").innerText =
     "Distância: " + Math.floor(score / 5) + "m\n" +
     "Recorde: " + Math.floor(bestScore / 5) + "m\n\n" +
-    "Total da divida de beijos: " + kisses + " 💋";
+    "Beijos devidos: " + kisses + " 💋";
 
   document.getElementById("gameOverScreen").style.display = "flex";
 }
@@ -280,11 +288,12 @@ window.addEventListener("keydown", e => {
   if (e.code === "Space") jump();
 });
 
-canvas.addEventListener("click", jump);
 window.addEventListener("touchstart", jump);
+canvas.addEventListener("click", jump);
 
 /* START */
 function startGame() {
+
   if (imagesLoaded < totalImages) return;
 
   document.getElementById("startScreen").style.display = "none";
