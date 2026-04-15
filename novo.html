@@ -20,9 +20,7 @@ body {
 
 canvas {
   border-radius: 25px;
-  box-shadow: 
-    0 0 40px #ff1493,
-    0 0 120px rgba(255, 20, 147, 0.6);
+  box-shadow: 0 0 40px #ff1493;
 }
 
 #startScreen, #gameOverScreen, #loadingScreen {
@@ -38,16 +36,10 @@ canvas {
   text-align: center;
 }
 
-h1 {
-  font-size: 3rem;
-  color: #ff4da6;
-}
-
 button {
-  margin-top: 30px;
-  padding: 15px 40px;
-  font-size: 1.2rem;
-  border-radius: 40px;
+  margin-top: 20px;
+  padding: 12px 30px;
+  border-radius: 30px;
   border: none;
   background: linear-gradient(45deg, #ff1493, #ff69b4);
   color: white;
@@ -71,7 +63,8 @@ button {
 </div>
 
 <div id="gameOverScreen" style="display:none;">
-  <h1>HAHAHAHAH foi pega pelo meu coração❤️</h1>
+  <h1>💔 Você foi pega!</h1>
+  <p id="finalText"></p>
   <button onclick="startGame()">Jogar novamente</button>
 </div>
 
@@ -82,6 +75,10 @@ const ctx = canvas.getContext('2d');
 /* CONFIG */
 const RUN_TOTAL = 5;
 const JUMP_TOTAL = 3;
+
+/* RECORDES */
+let bestScore = localStorage.getItem("recorde") || 0;
+let kisses = localStorage.getItem("kisses") || 0;
 
 /* LOADING */
 let imagesLoaded = 0;
@@ -121,7 +118,6 @@ let velocity = 0;
 let gravity = 0.9;
 let isJumping = false;
 
-/* HITBOX MENOR */
 const playerHitbox = {
   x: 90,
   width: 60,
@@ -134,9 +130,8 @@ let score = 0;
 let gameSpeed = 5;
 let gameRunning = false;
 
-/* SPAWN CONTROLADO */
 let spawnTimer = 0;
-let spawnInterval = 90; // quanto maior, mais fácil
+let spawnInterval = 90;
 
 /* PLAYER */
 function drawPlayer() {
@@ -179,7 +174,6 @@ function update() {
     isJumping = false;
   }
 
-  /* SPAWN MAIS JUSTO */
   if (spawnTimer > spawnInterval) {
     hearts.push({
       x: canvas.width,
@@ -190,21 +184,31 @@ function update() {
 
   hearts.forEach(h => h.x -= gameSpeed);
 
-  /* COLISÃO AJUSTADA */
   hearts = hearts.filter(h => {
+
     if (
       h.x < playerHitbox.x + playerHitbox.width &&
       h.x > playerHitbox.x &&
       h.y > playerY - playerHitbox.height &&
       h.y < playerY
     ) {
+      // 💋 AGORA É ACUMULATIVO
+      kisses++;
+      localStorage.setItem("kisses", kisses);
+
       gameRunning = false;
-      document.getElementById("gameOverScreen").style.display = "flex";
+
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("recorde", bestScore);
+      }
+
+      showGameOver();
     }
+
     return h.x > -50;
   });
 
-  /* DIFICULDADE PROGRESSIVA */
   if (score % 500 === 0) {
     gameSpeed += 0.3;
     spawnInterval = Math.max(50, spawnInterval - 5);
@@ -219,8 +223,20 @@ function draw() {
   hearts.forEach(h => drawHeart(h.x, h.y));
 
   ctx.fillStyle = "#fff";
-  ctx.font = "20px Arial";
-  ctx.fillText("Distância: " + Math.floor(score / 5), 20, 40);
+  ctx.font = "18px Arial";
+  ctx.fillText("Distância: " + Math.floor(score / 5), 20, 30);
+  ctx.fillText("Recorde: " + Math.floor(bestScore / 5), 20, 55);
+  ctx.fillText("Beijos devidos: " + kisses + " 💋", 20, 80);
+}
+
+/* GAME OVER */
+function showGameOver() {
+  document.getElementById("finalText").innerText =
+    "Distância: " + Math.floor(score / 5) + "m\n" +
+    "Recorde: " + Math.floor(bestScore / 5) + "m\n\n" +
+    "Total da divida de beijos: " + kisses + " 💋";
+
+  document.getElementById("gameOverScreen").style.display = "flex";
 }
 
 /* CONTROLES */
